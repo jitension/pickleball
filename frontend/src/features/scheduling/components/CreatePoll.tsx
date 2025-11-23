@@ -4,7 +4,7 @@ import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Add } from '@mui/icons-material';
-import dayjs, { Dayjs } from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import { useCreatePollMutation, useGetLocationsQuery } from '../schedulingApi';
 
 const CreatePoll = () => {

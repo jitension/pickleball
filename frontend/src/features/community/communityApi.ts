@@ -15,7 +15,7 @@ export const communityApi = api.injectEndpoints({
         }),
         getPost: builder.query<Post, number>({
             query: (id) => `/community/posts/${id}/`,
-            providesTags: (result, error, id) => [{ type: 'Post', id }],
+            providesTags: (_result, _error, id) => [{ type: 'Post', id }],
         }),
         getComments: builder.query<Comment[], number>({
             query: (postId) => `/community/posts/${postId}/comments/`,
