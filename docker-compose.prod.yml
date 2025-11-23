@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/jitension/pickleball-backend:latest
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DEBUG=${DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/jitension/pickleball-frontend:latest
+    ports:
+      - "8010:80"
+    volumes:
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+
+networks:
+  default:
+    name: pickleball_network
