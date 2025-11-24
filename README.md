@@ -51,12 +51,12 @@ docker-compose up -d
 
 See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for detailed instructions on deploying to Synology NAS.
 
-### Quick Deploy
+### Quick Deploy (On NAS)
 
 ```bash
-# On your NAS
 cd /volume1/docker/pickleball
-./deploy.sh
+docker-compose pull
+docker-compose up -d
 ```
 
 ## Architecture
