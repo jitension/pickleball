@@ -28,6 +28,8 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Allowed hosts
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Add wildcard for Cloudflare Quick Tunnels
+ALLOWED_HOSTS.append('.trycloudflare.com')
 
 
 # Application definition
@@ -38,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8010",
     "http://127.0.0.1:8011",
     "https://pickleball.jitension.synology.me",
+    "https://*.trycloudflare.com",  # Cloudflare Quick Tunnels
 ]
 
 INSTALLED_APPS = [
