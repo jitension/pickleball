@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from community.models import Post, Comment, Like
-from scheduling.models import Poll, RSVP
+from scheduling.models import Poll, RSVP, Location
 from competition.models import Challenge
 
 User = get_user_model()
@@ -109,6 +109,27 @@ class Command(BaseCommand):
             Like.objects.get_or_create(**data)
         self.stdout.write(f'  Created {len(like_data)} likes')
         
+        # Create locations
+        self.stdout.write('Creating locations...')
+        locations = []
+        
+        location_data = [
+            {'name': 'Riverside Park Courts', 'address': '123 River Rd'},
+            {'name': 'Community Center Courts', 'address': '456 Main St'},
+            {'name': 'Downtown Sports Complex', 'address': '789 Union Ave'},
+        ]
+        
+        for data in location_data:
+            location, created = Location.objects.get_or_create(
+                name=data['name'],
+                defaults={'address': data['address']}
+            )
+            locations.append(location)
+            if created:
+                self.stdout.write(f'  Created location: {location.name}')
+            else:
+                self.stdout.write(f'  Location already exists: {location.name}')
+        
         # Create polls
         self.stdout.write('Creating polls...')
         polls = []
@@ -119,7 +140,7 @@ class Command(BaseCommand):
             date=tomorrow,
             time_start='18:00:00',
             time_end='20:00:00',
-            location='Riverside Park Courts',
+            location=locations[0],  # Riverside Park Courts
             is_active=True
         )
         polls.append(poll1)
@@ -130,7 +151,7 @@ class Command(BaseCommand):
             date=next_week,
             time_start='10:00:00',
             time_end='12:00:00',
-            location='Community Center Courts',
+            location=locations[1],  # Community Center Courts
             is_active=True
         )
         polls.append(poll2)
