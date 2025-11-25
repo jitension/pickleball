@@ -1,0 +1,92 @@
+# EXAMPLE: How to add Apple Sign In
+# This shows how the flexible OAuth structure makes adding new providers easy
+
+from django.conf import settings
+from django.shortcuts import redirect
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model
+import os
+
+User = get_user_model()
+
+# Apple OAuth credentials (add to .env)
+APPLE_CLIENT_ID = os.environ.get('APPLE_OAUTH_CLIENT_ID', '')
+APPLE_TEAM_ID = os.environ.get('APPLE_TEAM_ID', '')
+APPLE_KEY_ID = os.environ.get('APPLE_KEY_ID', '')
+APPLE_REDIRECT_URI = os.environ.get('APPLE_OAUTH_REDIRECT_URI', 'http://localhost:8011/api/auth/apple/callback/')
+
+
+class AppleLoginView(APIView):
+    """Initiate Apple Sign In flow"""
+    permission_classes = []
+    
+    def get(self, request):
+        apple_oauth_url = (
+            f"https://appleid.apple.com/auth/authorize?"
+            f"client_id={APPLE_CLIENT_ID}&"
+            f"redirect_uri={APPLE_REDIRECT_URI}&"
+            f"response_type=code&"
+            f"scope=name email&"
+            f"response_mode=form_post"
+        )
+        return redirect(apple_oauth_url)
+
+
+class AppleCallbackView(APIView):
+    """Handle Apple Sign In callback"""
+    permission_classes = []
+    
+    def post(self, request):
+        # Apple sends data as POST, not GET
+        code = request.data.get('code')
+        
+        if not code:
+            return Response(
+                {'error': 'Authorization code not provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Exchange code for tokens (Apple requires JWT client secret)
+            # ... Apple-specific token exchange logic ...
+            
+            # Verify ID token and extract user info
+            email = "user@example.com"  # From Apple ID token
+            first_name = "John"  # From user object
+            last_name = "Doe"
+            apple_id = "001234.abc..."  # Apple's unique user ID
+            
+            # Get or create user (SAME PATTERN AS GOOGLE!)
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': email.split('@')[0],
+                    'first_name': first_name,
+                    'last_name': last_name,
+                }
+            )
+            
+            # Update profile with Apple OAuth data (GENERIC FIELDS!)
+            profile = user.profile
+            profile.auth_provider = 'APPLE'  # Just change the provider
+            profile.oauth_id = apple_id      # Same field name
+            # Apple doesn't provide profile pictures by default
+            profile.save()
+            
+            # Generate JWT tokens (SAME AS GOOGLE!)
+            refresh = RefreshToken.for_user(user)
+            
+            # Redirect with tokens (SAME AS GOOGLE!)
+            frontend_base = os.getenv('FRONTEND_URL', 'http://localhost:8011')
+            redirect_url = f"{frontend_base}/auth/callback?access={str(refresh.access_token)}&refresh={str(refresh)}"
+            return redirect(redirect_url)
+            
+        except Exception as e:
+            print(f"Apple OAuth error: {str(e)}")
+            return Response(
+                {'error': f'Authentication failed: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )

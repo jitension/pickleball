@@ -33,7 +33,10 @@ services:
       - SQL_HOST=db
       - SQL_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8011}
+      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+      - GOOGLE_OAUTH_REDIRECT_URI=${GOOGLE_OAUTH_REDIRECT_URI:-http://localhost:8011/api/auth/google/callback/}
     depends_on:
       - db
       - redis

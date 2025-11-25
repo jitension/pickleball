@@ -27,9 +27,14 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-ch
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Allowed hosts
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Check both DJANGO_ALLOWED_HOSTS (from docker-compose) and ALLOWED_HOSTS
+allowed_hosts_str = os.environ.get('DJANGO_ALLOWED_HOSTS') or os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = allowed_hosts_str.split(',') if ',' in allowed_hosts_str else allowed_hosts_str.split()
 # Add wildcard for Cloudflare Quick Tunnels
 ALLOWED_HOSTS.append('.trycloudflare.com')
+# Add wildcard for development
+if DEBUG:
+    ALLOWED_HOSTS.append('*')
 
 
 # Application definition

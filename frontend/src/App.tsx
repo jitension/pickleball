@@ -3,6 +3,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import Login from './features/auth/Login';
 import Register from './features/auth/Register';
+import AuthCallback from './pages/AuthCallback';
 import Home from './pages/Home';
 import Feed from './pages/Feed';
 import Polls from './pages/Polls';
@@ -17,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
             path="/"
             element={
